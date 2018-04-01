@@ -324,6 +324,7 @@ template <class Value, class Hash, class Pred, class Alloc>
 #include <functional>
 
 #include <__debug>
+#include <vector>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -463,6 +464,31 @@ public:
 
     _LIBCPP_INLINE_VISIBILITY
     iterator       begin() _NOEXCEPT        {return __table_.begin();}
+    
+    
+    _LIBCPP_INLINE_VISIBILITY
+    iterator begin_random() _NOEXCEPT {
+      vector <string> vect;
+      int index;
+      __table* table_random = new __table;
+      table_random->reserve(bucket_count());
+
+      // insert elements from hash table into vector
+      for (auto e = __table_.begin(); e != __table_.end(); e++)
+        vect.push_back(*e);
+
+      // shuffle elements and insert them into the new hash table
+      while (!vect.empty())
+      {
+        index = rand() % vect.size();
+        table_random->__insert_unique(vect[index]);
+        vect.erase(vect.begin()+index);
+      }
+      
+       return table_random->begin();
+    }
+    
+    
     _LIBCPP_INLINE_VISIBILITY
     iterator       end() _NOEXCEPT          {return __table_.end();}
     _LIBCPP_INLINE_VISIBILITY
