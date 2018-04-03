@@ -21,6 +21,7 @@
 #include <type_traits>
 
 #include <__debug>
+#include <vector>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -369,6 +370,18 @@ public:
         ++(*this);
         return __t;
     }
+
+    // START ADDED CODE
+    _LIBCPP_INLINE_VISIBILITY
+    __next_pointer getNode() {
+        return __node_;
+    }
+    _LIBCPP_INLINE_VISIBILITY
+    void setNext(__hash_iterator next_it) {
+        __node_->__next_ = next_it.getNode();
+    }
+    // END CODE
+
 
     friend _LIBCPP_INLINE_VISIBILITY
     bool operator==(const __hash_iterator& __x, const __hash_iterator& __y)
@@ -1762,6 +1775,35 @@ inline
 typename __hash_table<_Tp, _Hash, _Equal, _Alloc>::iterator
 __hash_table<_Tp, _Hash, _Equal, _Alloc>::begin() _NOEXCEPT
 {
+  // START ADDED CODE
+  vector <iterator> vect;
+  iterator it_current, it_prev, it_init;
+  int index;
+
+  // insert elements from hash table into vector
+  for (iterator it(__p1_.first().__next_); it.getNode() != nullptr; it++){
+      vect.push_back(static_cast<iterator&&>(it));
+  }
+
+  // shuffle elements and insert them into the new hash table
+  index = rand() % vect.size();
+  it_init = vect[index];
+  it_prev = it_init;
+
+  vect.erase(vect.begin()+index);
+  while (!vect.empty()) {
+      index = rand() % vect.size();
+
+      it_current = vect[index];
+      it_prev.setNext(it_current);
+      it_prev = it_current;
+
+      vect.erase(vect.begin() + index);
+  }
+  it_prev.setNext(iterator(nullptr));
+
+  __p1_.first().__next_ = it_init.getNode();
+
 #if _LIBCPP_DEBUG_LEVEL >= 2
     return iterator(__p1_.first().__next_, this);
 #else
@@ -1786,6 +1828,7 @@ inline
 typename __hash_table<_Tp, _Hash, _Equal, _Alloc>::const_iterator
 __hash_table<_Tp, _Hash, _Equal, _Alloc>::begin() const _NOEXCEPT
 {
+
 #if _LIBCPP_DEBUG_LEVEL >= 2
     return const_iterator(__p1_.first().__next_, this);
 #else
